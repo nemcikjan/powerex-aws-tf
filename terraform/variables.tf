@@ -19,7 +19,11 @@ variable "s3_lambda_trigger_bucket_name" {
   type    = string
 }
 
-variable "lambda_function_name" {
+variable "lambda_name" {
   default = "powerex-lambda"
   type    = string
+}
+
+variable "lambda_handler" {
+  type = string
 }
