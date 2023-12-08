@@ -1,4 +1,4 @@
-# Taken from https://rashadansari.medium.com/utilizing-terraform-with-github-actions-a-step-by-step-guide-48c0155edd5e
+# Inspired by https://rashadansari.medium.com/utilizing-terraform-with-github-actions-a-step-by-step-guide-48c0155edd5e
 
 name: Terraform
 
@@ -13,9 +13,37 @@ env:
   TF_VAR_aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
 
 jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install zip
+        uses: montudor/action-zip@v1
+        
+      - name: Zip source code
+        run: zip -qq -r -j powerex-metadata-function.zip file-metadata/function.py
+        
+      - name: Create dependcies layer
+        run: ./10-build-layer.sh
+        working-directory: scripts
+
+      - name: Zip layer
+        run: zip -qq -r powerex-metadata-function-deps.zip package
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: powerex-metadata-function
+          path: |
+            powerex-metadata-function.zip
+            powerex-metadata-function-deps.zip
+
   terraform:
     name: Plan / Apply
     runs-on: ubuntu-20.04
+    needs: prepare
     defaults:
       run:
         working-directory: terraform
@@ -23,7 +51,14 @@ jobs:
       contents: read
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+      
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: powerex-metadata-function
+        path: terraform/out
 
     - name: Use Terraform 1.6.5
       uses: hashicorp/setup-terraform@v2
@@ -47,13 +82,13 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color -input=false
+      run: terraform plan -no-color -input=false -refresh=true
       continue-on-error: true
 
     - name: Terraform Status
       if: steps.plan.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.init.outcome == 'failure' || steps.fmt.outcome == 'failure'
       run: exit 1
 
-    # - name: Terraform Apply
-    #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    #   run: terraform apply -auto-approve -input=false
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false

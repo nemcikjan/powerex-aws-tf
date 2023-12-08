@@ -13,12 +13,14 @@ def lambda_handler(event, context):
     try:
         response = s3_client.get_object(Bucket=bucket, Key=key)
         print("content_type: " + response['ContentType'])
-        print("metadata: " + response['Metadata'])
-        print("last_modified" + response['LastModified'])
+        print("metadata: ", response['Metadata'])
+        print("last_modified: ", response['LastModified'])
+        print("size: ", response['ContentLength'] / 1000)
         return {
             "content_type": response['ContentType'],
             "metadata": response['Metadata'],
-            "last_modified": response['LastModified']
+            "last_modified": response['LastModified'].isoformat(),
+            "size": response['ContentLength'] / 1000
         }
     except Exception as e:
         print(e)

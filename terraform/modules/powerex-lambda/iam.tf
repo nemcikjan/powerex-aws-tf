@@ -23,13 +23,17 @@ data "aws_iam_policy_document" "powerex_lambda_assume_role" {
 #   }
 # }
 
-data "aws_iam_policy_document" "powerex_lambda_s3_policy" {
+data "aws_iam_policy_document" "powerex_lambda_policy" {
   statement {
     actions = ["s3:GetObject"]
     resources = [
       var.s3_trigger_bucket_arn,
       "${var.s3_trigger_bucket_arn}/*",
     ]
+  }
+  statement {
+    actions   = ["sqs:SendMessage"]
+    resources = [aws_sqs_queue.powerex_dlq.arn]
   }
 }
 
@@ -51,7 +55,7 @@ resource "aws_iam_role" "powerex_lambda_role" {
 
 resource "aws_iam_role_policy" "lambda_s3_policy" {
   role   = aws_iam_role.powerex_lambda_role.id
-  policy = data.aws_iam_policy_document.powerex_lambda_s3_policy.json
+  policy = data.aws_iam_policy_document.powerex_lambda_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "powerex_lambda_role_attach" {

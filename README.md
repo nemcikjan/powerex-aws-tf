@@ -66,6 +66,10 @@ s3_lambda_layer_bucket_name   = "demo-layer-bucket"
 s3_lambda_trigger_bucket_name = "demo-bucket"
 ```
 
+```bash
+aws s3 cp <file> s3://powerex-demo
+```
+
 ### Lambda function
 
 For this task we decided to implement `file-metadata` Lambda function. It fetches newly added object in specified bucket, and prints and returns it's content type, metadata and last modified date. To decrease the size of lambda function, we leverage AWS Lambda Layers to store the function's dependencies.
@@ -73,7 +77,7 @@ For this task we decided to implement `file-metadata` Lambda function. It fetche
 #### Technical debt & enhancements
 
 - for S3 monitoring and auditing I'd use either Cloudwatch (logs and events) or CloudTrail
-- for better reliability we could have used Eventbridge which supports DLQ out of box and it doesn't require additional permissions for S3 service to push events to EventBridge
+- for better reliability we could have used Eventbridge which supports DLQ for the target invocation and it doesn't require additional permissions for S3 service to push events to EventBridge
 - Lambda Layer could be created in CI/CD pipeline in separate steps, which would simplify terraform resource dependencies
 - it wasn't necessary to specify any Lambda Layer since both, Lambda function and Lambda Layer, are residing in the same AWS account
 - Lambda function are by default managed by AWS, so we can assume they are high available out of box. Anyways, to achieve custom HA setup, we can deploy the function inside our managed VPC and define multiple subnets in different AZ's, in case of one AZ unavailability. However, the introduction of VPC would enhance the security in following manner:
