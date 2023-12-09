@@ -57,6 +57,8 @@ Here you can find step-by-step guide how to solution of the task was performed a
 
 ### Infrastructire provisioning
 
+To provision the resources we use Terraform. To simplify the code and increase readability, we create a separated module for Lambda function related stuff and for possible reuse in the future. To run the terraform configurations, you should create/use a `tfvars` file similar to one provided below.
+
 Example variables file:
 
 ```terraform
@@ -66,16 +68,31 @@ s3_lambda_layer_bucket_name   = "demo-layer-bucket"
 s3_lambda_trigger_bucket_name = "demo-bucket"
 ```
 
+After successful resource create, we can upload a file into the demo bucket to try out and test the Lambda function invocation.
+
 ```bash
 aws s3 cp <file> s3://powerex-demo
 ```
+
+If the invocation was succesfull, we can check the logs in the log group `/aws/lambda/<function_name>`. We should see similar output, where the summary field represents the actual "processing" of uploaded file into to S3 bucket.
+
+![log_output](image.png)
 
 ### Lambda function
 
 For this task we decided to implement `file-metadata` Lambda function. It fetches newly added object in specified bucket, and prints and returns it's content type, metadata and last modified date. To decrease the size of lambda function, we leverage AWS Lambda Layers to store the function's dependencies.
 
-#### Technical debt & enhancements
+### Scripts & helpers
 
+To build a Lambda Layer with the function dependencies, we created small script [10-build-layer.sh](./scripts/10-build-layer.sh) to simplify this process and to ensure alignment with the structure requirements.
+
+### Pipelines
+
+This project uses two pipeline workflows. [terraform.yml](./.github/workflows/terraform.yml) is used for auto provisioning of Terraform resurces. [destroy.yml](./.github/workflows/destroy.yml) is manually triggered job in case of destroying the infrastructure.
+
+### Technical debt & enhancements
+
+- to ensure consistency between Terraform runs, we are using s3 backend for terraform state with dedicated IAM role. This role has to be changed in [terraform.tf](./terraform/terraform.tf#L17) file and should have minimal permission accorind to [docs](https://developer.hashicorp.com/terraform/language/settings/backends/s3#s3-bucket-permissions)
 - for S3 monitoring and auditing I'd use either Cloudwatch (logs and events) or CloudTrail
 - for better reliability we could have used Eventbridge which supports DLQ for the target invocation and it doesn't require additional permissions for S3 service to push events to EventBridge
 - Lambda Layer could be created in CI/CD pipeline in separate steps, which would simplify terraform resource dependencies

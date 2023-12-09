@@ -36,3 +36,10 @@ resource "aws_s3_bucket_policy" "allow_access_from_powerex_lambda" {
   bucket = local.s3_trigger_bucket.id
   policy = data.aws_iam_policy_document.allow_access_from_powerex_lambda.json
 }
+
+
+resource "aws_s3_object" "powerex_deps_layer" {
+  bucket = local.s3_layer_bucket.id
+  key    = "${var.lambda_name}_layer.zip"
+  source = "out/${var.lambda_name}-deps.zip"
+}

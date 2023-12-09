@@ -13,16 +13,6 @@ data "aws_iam_policy_document" "powerex_lambda_assume_role" {
   }
 }
 
-# data "aws_iam_policy_document" "powerex_eventbridge_assume_role" {
-#   statement {
-#     actions = ["sts:AssumeRole"]
-#     principals {
-#       identifiers = ["events.amazonaws.com"]
-#       type        = "Service"
-#     }
-#   }
-# }
-
 data "aws_iam_policy_document" "powerex_lambda_policy" {
   statement {
     actions = ["s3:GetObject"]
@@ -36,16 +26,6 @@ data "aws_iam_policy_document" "powerex_lambda_policy" {
     resources = [aws_sqs_queue.powerex_dlq.arn]
   }
 }
-
-# resource "aws_iam_role" "eventbridge_lambda_invocation" {
-#   name               = "eventbridge-lambda-invocation-role"
-#   assume_role_policy = data.aws_iam_policy_document.powerex_eventbridge_assume_role.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "eventbridge_lambda_invocation_role_attach" {
-#   policy_arn = local.lambda_managed_lambda_policy_arn
-#   role       = aws_iam_role.eventbridge_lambda_invocation.name
-# }
 
 resource "aws_iam_role" "powerex_lambda_role" {
   name = "${var.name}-role"

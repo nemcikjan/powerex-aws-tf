@@ -16,8 +16,3 @@ module "powerex_lambda" {
   depends_on             = [aws_s3_object.powerex_deps_layer]
 }
 
-resource "aws_s3_object" "powerex_deps_layer" {
-  bucket = local.s3_layer_bucket.id
-  key    = "${var.lambda_name}_layer.zip"
-  source = "out/${var.lambda_name}-deps.zip"
-}
