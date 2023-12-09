@@ -92,7 +92,7 @@ This project uses two pipeline workflows. [terraform.yml](./.github/workflows/te
 
 ### Technical debt & enhancements
 
-- to ensure consistency between Terraform runs, we are using s3 backend for terraform state with dedicated IAM role. This role has to be changed in [terraform.tf](./terraform/terraform.tf#L17) file and should have minimal permission accorind to [docs](https://developer.hashicorp.com/terraform/language/settings/backends/s3#s3-bucket-permissions)
+- to ensure consistency between Terraform runs, we are using s3 backend for terraform state with dedicated IAM role. This role has to be changed in [terraform.tf](./terraform/terraform.tf#L17) file and should have minimal permission accoring to [docs](https://developer.hashicorp.com/terraform/language/settings/backends/s3#s3-bucket-permissions). For now the backend in not using locking mechanism.
 - for S3 monitoring and auditing I'd use either Cloudwatch (logs and events) or CloudTrail
 - for better reliability we could have used Eventbridge which supports DLQ for the target invocation and it doesn't require additional permissions for S3 service to push events to EventBridge
 - Lambda Layer could be created in CI/CD pipeline in separate steps, which would simplify terraform resource dependencies

@@ -9,6 +9,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TF_VAR_aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+  AWS_DEFAULT_REGION: eu-central-1
 
 jobs:
 
@@ -19,17 +20,34 @@ jobs:
       run:
         working-directory: terraform
     permissions:
+      id-token: write
       contents: read
     steps:
     - name: Checkout
       uses: actions/checkout@v3
 
-      
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
+    - name: Hack
+      run:  | 
+        mkdir out
+        touch out/powerex-metadata-function.zip
+        touch out/powerex-metadata-function-deps.zip
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        name: powerex-metadata-function
-        path: terraform/out
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        role-skip-session-tagging: true
+
+    - name: Cleanup buckets
+      run: |
+        buckets=("powerex-metadata-function-deps" "powerex-demo")
+
+        for b in ${buckets[@]}; do
+          if aws s3api head-bucket --bucket $b 2>/dev/null; then aws s3 rm s3://$b --recursive; fi
+        done
 
     - name: Use Terraform 1.6.5
       uses: hashicorp/setup-terraform@v2
