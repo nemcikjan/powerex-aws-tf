@@ -7,6 +7,8 @@ This repo containts all configurations and source code required to fullfil inter
   - [Required tools](#required-tools)
   - [Infrastructire provisioning](#infrastructire-provisioning)
   - [Lambda function](#lambda-function)
+  - [Scripts & helpers](#scripts--helpers)
+  - [Technical debt & enhancements](#technical-debt--enhancements)
 
 ## Submission
 
@@ -49,7 +51,7 @@ Here you can find step-by-step guide how to solution of the task was performed a
 - Terraform
 - Git
 
-## Structure
+### Structure
 
 - `terraform` - includes all terraform related configurations to deploy AWS resources
 - `scripts` - includes helper scripts
