@@ -1,3 +1,7 @@
+locals {
+  source_code_file = "out/${var.name}.zip"
+}
+
 resource "aws_lambda_layer_version" "powerex_lambda_layer" {
   layer_name          = "${var.name}_layer"
   compatible_runtimes = ["python3.9"]
@@ -6,11 +10,13 @@ resource "aws_lambda_layer_version" "powerex_lambda_layer" {
 }
 
 resource "aws_lambda_function" "powerex_lambda_function" {
-  function_name = var.name
-  handler       = var.lambda_handler
-  runtime       = "python3.9"
-  filename      = "out/${var.name}.zip"
-  role          = aws_iam_role.powerex_lambda_role.arn
+  function_name    = var.name
+  handler          = var.lambda_handler
+  runtime          = "python3.9"
+  filename         = local.source_code_file
+  role             = aws_iam_role.powerex_lambda_role.arn
+  publish          = var.publish
+  source_code_hash = filebase64sha256(local.source_code_file)
 
   layers = [
     aws_lambda_layer_version.powerex_lambda_layer.arn,

@@ -18,3 +18,8 @@ variable "s3_layer_bucket_name" {
 variable "lambda_handler" {
   type = string
 }
+
+variable "publish" {
+  type    = bool
+  default = false
+}
